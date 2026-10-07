@@ -79,11 +79,20 @@ jobs:
             fi
           fi
 
-          # 关键：不要 merge upstream/main。
-          # merge 会在 fork 里产生“Auto-sync”提交，导致 GitHub 显示 ahead of upstream，
-          # 从而让网页端 Sync fork 只能提示丢弃提交。
-          # reset + force-with-lease 让 fork/main 精确镜像 upstream/main。
-          git reset --hard upstream/main
+          # 保留 fork 自己的修复和配置，通过 merge 吸收上游更新。
+          # 上游已经包含在 fork 中时，无需重复创建同步提交。
+          git checkout -B main origin/main
 
-          echo "🚀 正在将 fork/main 快照同步为 upstream/main..."
-          git push --force-with-lease origin main
+          if git merge-base --is-ancestor "${UPSTREAM_SHA}" "${ORIGIN_SHA}"; then
+            echo "✨ Fork 已包含最新上游提交，无需同步。"
+            exit 0
+          fi
+
+          echo "🔄 正在合并 upstream/main，保留 fork 本地提交..."
+          if ! git merge --no-edit -X ours upstream/main; then
+            echo "❌ 上游合并出现冲突，未推送任何更改。"
+            exit 1
+          fi
+
+          git push origin main
+          echo "✅ 上游更新已合并，fork 本地修复已保留。"
