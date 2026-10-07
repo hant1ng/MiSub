@@ -120,6 +120,15 @@ describe('Surge 内置生成器', () => {
     });
 
     describe('Hysteria2', () => {
+        it('应保留 Surge 证书指纹和端口跳跃参数', () => {
+            const hy2 = 'hysteria2://password@edge.example:60000/?insecure=false&sni=iosapps.itunes.apple.com&pinSHA256=a52eee8669d92360a913a3fc101157e2bdc182947a377831abbccc31928decce&mport=60000-65530#Hy2Pinned';
+            const result = generateBuiltinSurgeConfig(hy2);
+            expect(result).toContain('sni=iosapps.itunes.apple.com');
+            expect(result).toContain('server-cert-fingerprint-sha256=a52eee8669d92360a913a3fc101157e2bdc182947a377831abbccc31928decce');
+            expect(result).toContain('port-hopping=60000-65530');
+            expect(result).not.toContain('skip-cert-verify=true');
+        });
+
         it('应正确生成 Hysteria2 代理行', () => {
             const hy2 = 'hysteria2://password@1.2.3.4:443#TestHy2';
             const result = generateBuiltinSurgeConfig(hy2);
