@@ -632,6 +632,16 @@ function parseHysteria2Url(url) {
             proxy.sni = params.get('sni');
         }
 
+        // Surge 证书指纹固定（Hysteria2 URI 使用 pinSHA256）
+        if (params.get('pinSHA256')) {
+            proxy['server-cert-fingerprint-sha256'] = params.get('pinSHA256');
+        }
+
+        // Hysteria2 端口跳跃（URI 使用 mport，Surge 使用 port-hopping）
+        if (params.get('mport')) {
+            proxy['port-hopping'] = params.get('mport');
+        }
+
         // Skip cert verify
         if (params.get('insecure') === '1' || params.get('allowInsecure') === '1') {
             proxy['skip-cert-verify'] = true;
